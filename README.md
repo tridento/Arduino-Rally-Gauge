@@ -22,8 +22,8 @@ udpTelemetryPort=6776
 physicsUpdateRate=60
 ```
 ## Dirt Rally 1/2.0
+Documents\My Games\DiRT Rally\hardwaresettings:  
 ```
-<user>\Documents\My Games\DiRT Rally\hardwaresettings:
 <motion_platform>
   <udp enabled="true" extradata="3" ip="127.0.0.1" port="20777" delay="1" />
 </motion_platform>
