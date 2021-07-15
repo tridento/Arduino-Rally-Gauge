@@ -31,3 +31,6 @@ physicsUpdateRate=60
 
 ## Project Cars 1/2:
 just enable "project cars 1" udp somewhere inside the depths of ingame settings
+
+# Credits
+Arduino part — https://github.com/Billiam/pygauge (i just have slightly modified it)
