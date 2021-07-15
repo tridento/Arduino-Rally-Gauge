@@ -29,6 +29,9 @@ Documents\My Games\DiRT Rally\hardwaresettings:
 </motion_platform>
 ```
 
+## WRC 7/8/9
+https://www.racedepartment.com/downloads/wrc-telemetry-patch.38991/
+
 ## Project Cars 1/2:
 just enable "project cars 1" udp somewhere inside the depths of ingame settings
 
