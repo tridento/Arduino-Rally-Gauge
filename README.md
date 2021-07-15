@@ -6,7 +6,10 @@ PC with Windows 7/8/10, Arduino Leonardo (or another ATmega32u4-based Arduino bo
 
 # Installation
 PC: No installation required, prebuilt .exe available at Releases page  
-Arduino: just update the pin values for strobe, clock and data pins, upload sketch and you are good to go.
+Arduino: just update the pin values for strobe, clock and data pins, upload sketch and you are good to go
+```
+TM1638 module(8, 9, 7); // data pin 8, clock pin 9 and strobe pin 7
+```
 
 # Games
 ## Richard Burns Rally
