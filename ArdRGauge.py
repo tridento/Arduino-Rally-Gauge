@@ -96,7 +96,7 @@ class Sendr:
 
     def send(self, data):
         with suppress(TypeError):
-            self.serial1.write(struct.pack('>cHHcbcf',
+            self.serial1.write(struct.pack('>cHHcbch',
                                 b'R', data['rpm'], data['max_rpm'],
                                 b'G', data['gear'], b'S', data['speed']
                                 ))
