@@ -1,7 +1,7 @@
 # Arduino-Rally-Gauge
 Lightweight Python3 utility to display car telemetry data (RBR, Dirt Rally 1/2.0, WRC7/8/9, Project CARS 1/2) on the TM1638 LED module with Arduino.
 # Prerequisites
-PC with Windows 7/8/10, Arduino Leonardo (or another ATmega32u4-based Arduino board) with TM1638 LED module.
+PC with Windows 7/8/10/11 (havent tested it with xp or 95/98/nt), Arduino Leonardo (or another ATmega32u4-based Arduino board) with TM1638 LED module.
 # Installation
 PC: No installation required, prebuilt .exe available at Releases page  
 Arduino: just update the pin values for strobe, clock and data pins, upload sketch and you are good to go (don't forget: https://github.com/rjbatista/tm1638-library)
