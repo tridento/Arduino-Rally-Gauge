@@ -3,10 +3,9 @@ from tkinter import ttk
 from contextlib import suppress
 import asyncio, struct, serial, socket, sys
 
-
 class DetectCOMPorts:
     def __init__(self):
-        self.ports = ['COM%s' % (i + 1) for i in range(256)]
+        self.ports = ['COM%s' % (i + 1) for i in range(16)]
         self.result = []
 
     def detect(self):
@@ -15,7 +14,8 @@ class DetectCOMPorts:
                 s = serial.Serial(port)
                 s.close()
                 self.result.append(port)
-            except (OSError, serial.SerialException):
+            except (OSError, serial.SerialException) as exc:
+                print(f'{exc}')
                 pass
         return self.result
 
@@ -50,7 +50,7 @@ class Recv(asyncio.Protocol):
     def datagram_received(self, data, addr):
         if self.game_name == "dr_wrc":
             data = struct.unpack('64f', data[0:256])
-            data = {'speed': round(data[7]*3.6, 1), 'gear': int(data[33]),
+            data = {'speed': int(data[7]*3.6), 'gear': int(data[33]),
                     'rpm': int(data[37] * 10), 'max_rpm': int(data[63] * 10)
                     }
 
@@ -59,49 +59,56 @@ class Recv(asyncio.Protocol):
             speed = struct.unpack_from("@f", data , offset=60)[0]
             gear = struct.unpack_from("@l", data , offset=44)[0]
             data = {'rpm': abs(int(round(rpm))), 'max_rpm': 7200,
-                    'speed': abs(round(speed, 1)), 'gear': int(round(gear))-1}
+                    'speed': abs(int(speed)), 'gear': int(round(gear))-1}
 
         elif self.game_name == "pcars1-2":
             with suppress(ValueError):
                 rpm     = int(struct.unpack_from("@H", data , offset=124)[0])
                 max_rpm = int(struct.unpack_from("@H", data , offset=126)[0])
-                speed   = round(struct.unpack_from("@f", data , offset=120)[0], 1)
+                speed   = int(struct.unpack_from("@f", data , offset=120)[0])
                 gear    = hex(struct.unpack_from("@B", data , offset=128)[0])[3:]
                 if gear == 'f':
                     gear = int(10)
                 else:
                     gear = int(gear)
                 data = {'rpm': rpm, 'max_rpm': max_rpm,
-                        'speed': round(speed*3.6, 0), 'gear': gear}
+                        'speed': int(speed*3.6), 'gear': gear}
         self.sendr.send(data)
 
     def error_received(self, exc):
         print(f'Error received: {exc}')
 
     def connection_lost(self, exc):
+        print(f'Connection lost: {exc}')
         pass
 
 
 class Sendr:
     def __init__(self, com_port):
         try:
-            self.serial1 = serial.Serial(com_port, 115200, writeTimeout=1,
-                                    timeout=0, parity=serial.PARITY_NONE,
-                                    stopbits=serial.STOPBITS_ONE,xonxoff=False
-                                    )
+            self.serial1 = serial.Serial(com_port, 9600, writeTimeout=.3, timeout=.3, dsrdtr=True, xonxoff=True)
         except serial.serialutil.SerialException as exc:
             print(f'{exc} at {com_port}')
         print(f'{self.serial1}\r\n')
         gui.setSerial(self.serial1)
+        gui.setWarning('✅')
 
     def send(self, data):
-        with suppress(TypeError):
-            self.serial1.write(struct.pack('>cHHcbch',
-                                b'R', data['rpm'], data['max_rpm'],
-                                b'G', data['gear'], b'S', data['speed']
-                                ))
-        self.serial1.reset_output_buffer()
-        self.serial1.reset_input_buffer()
+        try:
+            with suppress(TypeError):
+                package1 = struct.pack('>cHHcbch',
+                            b'R', data['rpm'], data['max_rpm'],
+                            b'G', data['gear'], b'S', data['speed']
+                            )
+                self.serial1.write(package1)
+                self.serial1.reset_output_buffer()
+        except serial.serialutil.SerialTimeoutException as exc:
+            print(f'we got {len(package1)} bytes input, but something wrong: {exc}')
+            gui.setWarning('⚠')
+            pass
+        except serial.serialutil.SerialException as exc:
+            print(f'oops! {exc}')
+            gui.setWarning('⚠')
 
 
 class mainWindow:
@@ -110,10 +117,9 @@ class mainWindow:
         self.tk_handler.protocol("WM_DELETE_WINDOW", self.quit)
         tk_handler.geometry("240x100+800+400")
         tk_handler.title('rally arduino gauge')
-        tk_handler.attributes("-toolwindow", 1)
-        tk_handler.attributes("-topmost", 1)
         frame = Frame(tk_handler)
         frame.pack()
+        self.frame = frame
         self.box_name(frame)
         self.box_comport(frame)
         self.entry_sockport(frame)
@@ -130,10 +136,12 @@ class mainWindow:
         self.box_name.grid(row=0, column=0, padx=5, pady=5)
         self.box_name.bind('<<ComboboxSelected>>', self.check)
         
+    def setWarning(self, text='ok'):
+        self.warn_sign = ttk.Label(self.frame, text=text).grid(row=3, column=1)
+            
     def box_comport(self, frame):
         self.clist              = DetectCOMPorts().detect()
-        self.box_comport        = ttk.Combobox(frame, values=self.clist,
-                                               state="readonly", width=8)
+        self.box_comport        = ttk.Combobox(frame, values=self.clist, state="readonly", width=8)
         self.box_comport.extra  = 'com_port'
         self.box_comport.set("com port")
         self.box_comport.grid(row=0, column=1, padx=5, pady=5)
@@ -149,8 +157,7 @@ class mainWindow:
     def startbutton(self, frame):
         self.buttonvals = ['run!', 'running: press to stop']
         self.buttonval = 0
-        self.startbutton = ttk.Button(frame, text=self.buttonvals[self.buttonval],
-                                 state="disabled", command=self.run)
+        self.startbutton = ttk.Button(frame, text=self.buttonvals[self.buttonval], state="disabled", command=self.run)
         self.startbutton.grid(row=3, column=0, padx=5, pady=5)
 
     def setTransport(self, transport):
@@ -201,6 +208,7 @@ class mainWindow:
                 x.config(state='disabled')
         else:
             print(self.transport)
+            self.setWarning('➿')
             self.transport.close()
             self.serial.close()
             for x in [self.box_name, self.box_comport, self.entry_sockport]:
