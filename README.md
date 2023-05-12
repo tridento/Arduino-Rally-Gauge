@@ -10,7 +10,7 @@ TM1638 module(8, 9, 7); // data pin 8, clock pin 9 and strobe pin 7
 ```
 # Games
 ## Richard Burns Rally
-make sure that NGP6 installed and working  
+make sure that NGP6/7 installed and working  
 RichardBurnsRally.ini:  
 ```[NGP]
 udpTelemetry=1
@@ -25,7 +25,7 @@ Documents\My Games\DiRT Rally\hardwaresettings:
   <udp enabled="true" extradata="3" ip="127.0.0.1" port="20777" delay="1" />
 </motion_platform>
 ```
-## WRC 7/8/9
+## WRC 7/8/9/10/Generations
 https://www.racedepartment.com/downloads/wrc-telemetry-patch.38991/
 ## Project Cars 1/2:
 just enable "project cars 1" udp somewhere inside the depths of ingame settings
