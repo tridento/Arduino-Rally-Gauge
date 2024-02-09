@@ -19,7 +19,6 @@ class DetectCOMPorts:
                 pass
         return self.result
 
-
 class DGramStream:
     def __init__(self):
         self.loop       = asyncio.get_event_loop()
@@ -35,7 +34,6 @@ class DGramStream:
         transport, protocol = await self.loop.create_datagram_endpoint(
             lambda: Recv(self.com_port, self.game_name),
             sock = sock)
-
 
 class Recv(asyncio.Protocol):
     def __init__(self, com_port, game_name):
@@ -54,14 +52,14 @@ class Recv(asyncio.Protocol):
                     'rpm': int(data[37] * 10), 'max_rpm': int(data[63] * 10)
                     }
 
-        elif self.game_name == "rbr_ngp6":
+        if self.game_name == "rbr_ngp6":
             rpm = struct.unpack_from("@f", data , offset=136)[0]
             speed = struct.unpack_from("@f", data , offset=60)[0]
             gear = struct.unpack_from("@l", data , offset=44)[0]
             data = {'rpm': abs(int(round(rpm))), 'max_rpm': 7200,
                     'speed': abs(int(speed)), 'gear': int(round(gear))-1}
 
-        elif self.game_name == "pcars1-2":
+        if self.game_name == "pcars1-2":
             with suppress(ValueError):
                 rpm     = int(struct.unpack_from("@H", data , offset=124)[0])
                 max_rpm = int(struct.unpack_from("@H", data , offset=126)[0])
@@ -73,20 +71,30 @@ class Recv(asyncio.Protocol):
                     gear = int(gear)
                 data = {'rpm': rpm, 'max_rpm': max_rpm,
                         'speed': int(speed*3.6), 'gear': gear}
+
+        if self.game_name == "ea_wrc":
+            data = struct.unpack('@fffb', data)
+            data = {'speed': int(data[2]*3.6), 'gear': data[3],
+                   'rpm': int(data[0]), 'max_rpm': int(data[1])
+                    }
+                        
         self.sendr.send(data)
 
     def error_received(self, exc):
         print(f'Error received: {exc}')
+        gui.setWarning('⚠')
 
     def connection_lost(self, exc):
         print(f'Connection lost: {exc}')
+        gui.setWarning('⚠')
         pass
 
 
 class Sendr:
     def __init__(self, com_port):
         try:
-            self.serial1 = serial.Serial(com_port, 9600, writeTimeout=.3, timeout=.3, dsrdtr=True, xonxoff=True)
+            self.serial1 = serial.Serial(com_port, 9600,
+                writeTimeout=.3, timeout=.3, dsrdtr=True, xonxoff=True)
         except serial.serialutil.SerialException as exc:
             print(f'{exc} at {com_port}')
         print(f'{self.serial1}\r\n')
@@ -95,13 +103,13 @@ class Sendr:
 
     def send(self, data):
         try:
-            with suppress(TypeError):
-                package1 = struct.pack('>cHHcbch',
-                            b'R', data['rpm'], data['max_rpm'],
-                            b'G', data['gear'], b'S', data['speed']
-                            )
-                self.serial1.write(package1)
-                self.serial1.reset_output_buffer()
+            #with suppress(TypeError):
+            package1 = struct.pack('>cHHcbch',
+                        b'R', data['rpm'], data['max_rpm'],
+                        b'G', data['gear'], b'S', data['speed']
+                        )
+            self.serial1.write(package1)
+            self.serial1.reset_output_buffer()
         except serial.serialutil.SerialTimeoutException as exc:
             print(f'we got {len(package1)} bytes input, but something wrong: {exc}')
             gui.setWarning('⚠')
@@ -109,7 +117,6 @@ class Sendr:
         except serial.serialutil.SerialException as exc:
             print(f'oops! {exc}')
             gui.setWarning('⚠')
-
 
 class mainWindow:
     def __init__(self, tk_handler):
@@ -128,7 +135,7 @@ class mainWindow:
         self.isRunning = True
 
     def box_name(self, frame):
-        self.vlist              = ["dr_wrc", "rbr_ngp6", "pcars1-2"]
+        self.vlist              = ["dr_wrc", "ea_wrc", "rbr_ngp6", "pcars1-2"]
         self.box_name           = ttk.Combobox(frame, values=self.vlist,
                                                state="readonly", width=15)
         self.box_name.extra     = 'game_name'
@@ -184,6 +191,9 @@ class mainWindow:
 
     def set_defaults(self, name, value):
         if value == "dr_wrc":
+            self.entry_sockport.delete(0, END)
+            self.entry_sockport.insert(0, "20777")
+        if value == "ea_wrc":
             self.entry_sockport.delete(0, END)
             self.entry_sockport.insert(0, "20777")
         if value == "rbr_ngp6":
