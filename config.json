@@ -1,0 +1,80 @@
+{
+	"schema": 2,
+	"udp":
+	{
+		"packets": [
+			{
+				"structure": "wrc",
+				"packet": "session_update",
+				"ip": "127.0.0.1",
+				"port": 20777,
+				"frequencyHz": 10,
+				"bEnabled": false
+			},
+			{
+				"structure": "wrc_experimental",
+				"packet": "session_start",
+				"ip": "127.0.0.1",
+				"port": 20778,
+				"frequencyHz": 0,
+				"bEnabled": false
+			},
+			{
+				"structure": "wrc_experimental",
+				"packet": "session_update",
+				"ip": "127.0.0.1",
+				"port": 20777,
+				"frequencyHz": -1,
+				"bEnabled": false
+			},
+			{
+				"structure": "wrc_experimental",
+				"packet": "session_end",
+				"ip": "127.0.0.1",
+				"port": 20778,
+				"frequencyHz": 0,
+				"bEnabled": false
+			},
+			{
+				"structure": "wrc_experimental",
+				"packet": "session_pause",
+				"ip": "127.0.0.1",
+				"port": 20778,
+				"frequencyHz": 0,
+				"bEnabled": false
+			},
+			{
+				"structure": "wrc_experimental",
+				"packet": "session_resume",
+				"ip": "127.0.0.1",
+				"port": 20778,
+				"frequencyHz": 0,
+				"bEnabled": false
+			},
+			{
+				"structure": "custom1",
+				"packet": "session_update",
+				"ip": "127.0.0.1",
+				"port": 20777,
+				"frequencyHz": 10,
+				"bEnabled": false
+			},
+			{
+				"structure": "ard_g",
+				"packet": "session_update",
+				"ip": "127.0.0.1",
+				"port": 20777,
+				"frequencyHz": 25,
+				"bEnabled": true
+			}
+		]
+	},
+	"lcd":
+	{
+		"bDisplayGears": false
+	},
+	"dBox":
+	{
+		"bEnabled": false
+	}
+}
